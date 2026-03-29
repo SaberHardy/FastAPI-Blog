@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Request, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette import status
+from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request, HTTPException, status
 
 app = FastAPI()
 
