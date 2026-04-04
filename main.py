@@ -3,6 +3,9 @@ from fastapi.templating import Jinja2Templates
 from starlette import status
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Request, HTTPException, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI()
 
@@ -77,3 +80,18 @@ def get_post(post_id: int):
         if post.get("id") == post_id:
             return {"post": post}
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+
+@app.exception_handler(StarletteHTTPException)
+def general_http_exception_handler(request: Request, exc: StarletteHTTPException):
+    message = (exc.detail if exc.detail else "An error occurred on the server side.")
+    if request.url.path.startswith("/api"):
+        return JSONResponse(status_code=exc.status_code, content={"detail": message})
+    return templates.TemplateResponse(request,
+                                      "error_page.html",
+                                      {
+                                          "title": exc.status_code,
+                                          "message": message,
+                                          "status_code": exc.status_code
+                                      },
+                                      status_code=exc.status_code)
