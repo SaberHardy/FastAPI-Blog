@@ -1,4 +1,26 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
+
+
+class UserBase(BaseModel):
+    """
+    This class will have what's shared between UserCreate and UserResponse
+    """
+    username: str = Field(min_length=1, max_length=50)
+    email: str = EmailStr(max_length=50)  # we don't need to add the min length here bcz pydantic already does that
+    password: str = Field(min_length=1, max_length=50)
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
+
+
+class UserCreate(UserBase):
+    pass
+
+
+class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)  # this will pydantic to read data from sqlalchemy model
+    id: int
+    image_file: str | None
+    image_path: str
 
 
 class PostBase(BaseModel):
