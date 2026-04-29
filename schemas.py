@@ -6,7 +6,7 @@ class UserBase(BaseModel):
     This class will have what's shared between UserCreate and UserResponse
     """
     username: str = Field(min_length=1, max_length=50)
-    email: str = EmailStr(max_length=50)  # we don't need to add the min length here bcz pydantic already does that
+    email: str = EmailStr  # we don't need to add the min length here bcz pydantic already does that
     password: str = Field(min_length=1, max_length=50)
     first_name: str = Field(min_length=1, max_length=50)
     last_name: str = Field(min_length=1, max_length=50)
