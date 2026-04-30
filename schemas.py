@@ -26,11 +26,12 @@ class UserResponse(UserBase):
 class PostBase(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     content: str = Field(min_length=1)
-    author: str = Field(min_length=1, max_length=50)
+    # this is removed because will come from the relationship
+    # author: str = Field(min_length=1, max_length=50)
 
 
 class PostCreate(PostBase):
-    pass
+    user_id: int
 
 
 class PostResponse(PostBase):
@@ -44,3 +45,4 @@ class PostResponse(PostBase):
 
     id: int
     date_posted: str
+    author: UserResponse
