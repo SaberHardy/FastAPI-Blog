@@ -139,7 +139,7 @@ def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get
 
     if post:
         title = post.title[:50]
-        return templates.TemplateResponse(request, "post.html", {"post": post, "title": title})
+        return templates.TemplateResponse(request, "post_details.html", {"post": post, "title": title})
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 
