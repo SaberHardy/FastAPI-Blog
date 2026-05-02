@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
+from datetime import datetime
 
 
 class UserBase(BaseModel):
@@ -7,9 +8,9 @@ class UserBase(BaseModel):
     """
     username: str = Field(min_length=1, max_length=50)
     email: str = EmailStr  # we don't need to add the min length here bcz pydantic already does that
-    password: str = Field(min_length=1, max_length=50)
-    first_name: str = Field(min_length=1, max_length=50)
-    last_name: str = Field(min_length=1, max_length=50)
+    # password: str = Field(min_length=1, max_length=50)
+    # first_name: str = Field(min_length=1, max_length=50)
+    # last_name: str = Field(min_length=1, max_length=50)
 
 
 class UserCreate(UserBase):
@@ -44,5 +45,5 @@ class PostResponse(PostBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    date_posted: str
+    date_posted: datetime
     author: UserResponse

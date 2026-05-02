@@ -24,45 +24,6 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 templates = Jinja2Templates(directory="templates")
 
 
-# posts: list[dict] = [
-#     {
-#         "id": 1,
-#         "author": "Liam Carter",
-#         "title": "Exploring Microservices Architecture",
-#         "content": "Microservices allow teams to build scalable and maintainable systems by breaking applications into smaller, independent services.",
-#         "date_posted": "2026-02-12T09:15:23Z"
-#     },
-#     {
-#         "id": 2,
-#         "author": "Sophia Martinez",
-#         "title": "Introduction to Data Pipelines",
-#         "content": "Data pipelines automate the movement and transformation of data between systems, enabling efficient analytics and reporting.",
-#         "date_posted": "2026-02-14T14:42:10Z"
-#     },
-#     {
-#         "id": 3,
-#         "author": "Noah Thompson",
-#         "title": "Understanding RESTful APIs",
-#         "content": "RESTful APIs use standard HTTP methods to enable communication between clients and servers in a stateless manner.",
-#         "date_posted": "2026-02-18T08:30:45Z"
-#     },
-#     {
-#         "id": 4,
-#         "author": "Emma Johnson",
-#         "title": "Scaling Applications with Kubernetes",
-#         "content": "Kubernetes helps manage containerized applications, providing automated deployment, scaling, and operations.",
-#         "date_posted": "2026-02-22T17:05:12Z"
-#     },
-#     {
-#         "id": 5,
-#         "author": "Oliver Brown",
-#         "title": "Getting Started with Machine Learning",
-#         "content": "Machine learning enables systems to learn from data and improve performance without being explicitly programmed.",
-#         "date_posted": "2026-02-25T11:20:37Z"
-#     }
-# ]
-
-
 @app.get("/", include_in_schema=False, name="home")
 @app.get("/posts", include_in_schema=False, name="posts")
 def home(request: Request, db: Annotated[Session, Depends(get_db)]):
@@ -99,6 +60,11 @@ def get_post(db: Annotated[Session, Depends(get_db)], post_id: int):
         return post
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
+@app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
+    existing_email = db.execute(
+        select(models.User).where(models.User.email == user.email)).scalars().first()  # first obj or none if not exist
+    existing_user = db.execute(select(models.User).where(models.User.username == user.username)).scalars().first()
 
 @app.get("/posts/{post_id}", include_in_schema=False)
 def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get_db)]):  # get single post from the page
@@ -110,23 +76,8 @@ def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get
         return templates.TemplateResponse(request, "post.html", {"post": post, "title": title})
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
+    new_user = models.User(username=user.username, email=user.email)
 
-@app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.User).where(models.User.username == user.username))
-    existing_user = result.scalars().first()  # first obj or none if not exist
-    if existing_user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
-
-    result = db.execute(select(models.User).where(models.User.email == user.email))
-    existing_email = result.scalars().first()  # first obj or none if not exist
-    if existing_email:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already exists")
-
-    new_user = models.User(
-        username=user.username,
-        email=user.email,
-    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)  # this will refresh the new_user object with the data from the database
@@ -177,6 +128,22 @@ def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
     db.commit()
     db.refresh(new_post)
     return new_post
+
+
+@app.get("/posts/{post_id}", include_in_schema=False)
+def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get_db)]):  # get single post from the page
+    results = db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = results.scalars().first()
+
+    if post:
+        title = post.title[:50]
+        return templates.TemplateResponse(request, "post_details.html", {"post": post, "title": title})
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+
+# ========================
+# EXCEPTION HANDLERS
+# ========================
 
 
 @app.exception_handler(StarletteHTTPException)
