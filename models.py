@@ -35,3 +35,6 @@ class Post(Base):
                                                   default=lambda: datetime.now(timezone.utc),
                                                   )
     author: Mapped[User] = relationship(back_populates="posts")
+
+    def __str__(self):
+        return f"User with ID: '{self.user_id}' is printing '{self.title}'"
