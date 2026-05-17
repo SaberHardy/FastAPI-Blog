@@ -86,6 +86,27 @@ def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[Session,
     return post
 
 
+@app.patch("/api/posts/{post_id}", response_model=PostResponse)
+def update_post_partial(post_id: int, post_data: PostUpdate, db: Annotated[Session, Depends(get_db)]):
+    results = db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = results.scalars().first()
+    print(f"This is the post we are printing: {post}")
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Fount")
+
+    update_data = post_data.model_dump(exclude_unset=True)
+    print(f"Update data is: {update_data}")
+
+    for field, value in update_data.items():
+        setattr(post, field, value)
+
+    db.commit()
+    db.refresh(post)
+    print(f"The updated post is: {post}")
+    return post
+
+
 @app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     existing_email = db.execute(
