@@ -196,6 +196,18 @@ def update_user(user_id: int, user_update: UserUpdate, db: Annotated[Session, De
     return user
 
 
+@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="User Not Found")
+
+    db.delete(user)
+    db.commit()
+
+
 @app.post("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
 def user_posts_page(request: Request, user_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(select(models.User).where(models.User.id == user_id))
@@ -213,15 +225,21 @@ def user_posts_page(request: Request, user_id: int, db: Annotated[Session, Depen
                                        "title": f"{user.username}'s Posts"})
 
 
-@app.post("/api/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/posts", response_model=PostResponse,status_code=status.HTTP_201_CREATED,
+)
 def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
-    selected_user = db.execute(select(models.User).where(models.User.id == post.user_id))
-    user_to_create_post = selected_user.scalars().first()
-
-    if not user_to_create_post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found")
-
-    new_post = models.Post(title=post.title, content=post.content, user_id=post.user_id)
+    result = db.execute(select(models.User).where(models.User.id == post.user_id))
+    user = result.scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    new_post = models.Post(
+        title=post.title,
+        content=post.content,
+        user_id=post.user_id,
+    )
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
