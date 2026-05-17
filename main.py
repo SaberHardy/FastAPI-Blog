@@ -107,6 +107,18 @@ def update_post_partial(post_id: int, post_data: PostUpdate, db: Annotated[Sessi
     return post
 
 
+@app.delete("/api/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
+    results = db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = results.scalars().first()
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Fount")
+
+    db.delete(post)
+    db.commit()
+
+
 @app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     existing_email = db.execute(
