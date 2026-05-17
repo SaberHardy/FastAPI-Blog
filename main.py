@@ -5,7 +5,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from schemas import PostResponse, PostCreate, UserResponse, UserCreate
+from schemas import PostResponse, PostCreate, UserResponse, UserCreate, PostUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from typing import Annotated
@@ -60,11 +60,38 @@ def get_post(db: Annotated[Session, Depends(get_db)], post_id: int):
         return post
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
+
+@app.put("/api/posts/{post_id}", response_model=PostResponse)
+def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[Session, Depends(get_db)]):
+    results = db.execute(select(models.Post).where(models.Post.id == post_id))
+    post = results.scalars().first()
+    print(f"This is the post we are printing: {post}")
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post Not Fount")
+
+    if post_data.user_id != post.user_id:
+        results = db.execute(select(models.User).where(models.User.id == post_data.user_id))
+        user = results.scalars().first()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User Not Found")
+
+    post.title = post_data.title
+    post.content = post_data.content
+    post.used_id = post_data.user_id
+
+    db.commit()
+    db.refresh(post)
+
+    return post
+
+
 @app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     existing_email = db.execute(
         select(models.User).where(models.User.email == user.email)).scalars().first()  # first obj or none if not exist
     existing_user = db.execute(select(models.User).where(models.User.username == user.username)).scalars().first()
+
 
 @app.get("/posts/{post_id}", include_in_schema=False)
 def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get_db)]):  # get single post from the page
