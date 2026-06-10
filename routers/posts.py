@@ -29,7 +29,8 @@ async def get_post(db: Annotated[AsyncSession, Depends(get_db)], post_id: int):
 
 @router.get("", response_model=list[PostResponse])
 async def get_all_posts(db: Annotated[AsyncSession, Depends(get_db)]):
-    posts = await db.execute(select(models.Post).options(selectinload(models.Post.author)))
+    posts = await db.execute(select(models.Post).options(selectinload(models.Post.author))
+                             .order_by(models.Post.date_posted.desc()))
     all_posts = posts.scalars().all()
     return all_posts
 
@@ -49,6 +50,7 @@ async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_
     # when we create new post we need to refresh the author name in the database (load with specific relationship)
     await db.refresh(new_post, attribute_names=["author"])
     return new_post
+
 
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
