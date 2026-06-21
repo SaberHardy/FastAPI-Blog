@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 from database import get_db
 from schemas import PostCreate, PostResponse, PostUpdate
 import models
+from auth import CurrentUser
 
 router = APIRouter()
 
@@ -36,13 +37,14 @@ async def get_all_posts(db: Annotated[AsyncSession, Depends(get_db)]):
 
 
 @router.post("", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(models.User).where(models.User.id == post.user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+async def create_post(post: PostCreate, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
+    """This is commented out bcz of the CurrentUser added and this will be handled there"""
+    # result = await db.execute(select(models.User).where(models.User.id == post.user_id))
+    # user = result.scalars().first()
+    # if not user:
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    new_post = models.Post(title=post.title, content=post.content, user_id=post.user_id)
+    new_post = models.Post(title=post.title, content=post.content, user_id=current_user.id)
 
     db.add(new_post)
 
