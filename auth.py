@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
+
 import jwt
+from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
-from config import settings
-from typing import Annotated
-from fastapi import Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 import models
 from config import settings
 from database import get_db

@@ -1,22 +1,19 @@
+from datetime import timedelta
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select, func
+from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 import models
-from database import get_db
-from schemas import PostResponse, UserCreate, UserPublic, UserPrivate, UserUpdate, TokenSchema
-from datetime import timedelta
-from fastapi.security import OAuth2PasswordRequestForm
-
-from auth import (create_access_token,
-                  hash_password,
-                  verify_access_token,
-                  verify_password,
-                  oauth_scheme,
-                  CurrentUser)
+from auth import (CurrentUser, create_access_token, hash_password,
+                  oauth_scheme, verify_access_token, verify_password)
 from config import settings
+from database import get_db
+from schemas import (PostResponse, TokenSchema, UserCreate, UserPrivate,
+                     UserPublic, UserUpdate)
 
 router = APIRouter()
 

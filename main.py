@@ -1,22 +1,19 @@
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Request, HTTPException, status, Depends
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
 from contextlib import asynccontextmanager
-from fastapi.exception_handlers import http_exception_handler
+from typing import Annotated
 
-from sqlalchemy import select, desc
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.exception_handlers import http_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
-from typing import Annotated
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import models
 from database import Base, engine, get_db
 from routers import posts, users
-
 
 # Base.metadata.create_all(bind=engine) # this is syncronys
 
