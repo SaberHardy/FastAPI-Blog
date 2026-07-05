@@ -33,7 +33,10 @@ class UserPrivate(UserPublic):
 class UserUpdate(BaseModel):
     username: str | None = Field(default=None, min_length=1, max_length=50)
     email: EmailStr | None = Field(default=None, max_length=120)
-    image_file: str | None = Field(default=None, min_length=1, max_length=200)
+
+    # this has been okay in the beginning, but now it is a security issue
+    # The user can set any profile image using the api call, and can delete it at any time they want
+    # image_file: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class TokenSchema(BaseModel):
