@@ -14,6 +14,9 @@ class ImageExtensions(str, Enum):
     GIF = "gif"
     JPG = "jpg"
 
+    def to_list(cls):
+        return list(cls)
+
 
 class ImageModes(str, Enum):
     RGBA = "RGBA"
