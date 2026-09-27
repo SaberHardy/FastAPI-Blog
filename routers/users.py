@@ -153,7 +153,7 @@ async def update_user(user_id: int,
 
     # After the validation, i can update only the fields are provided
     if user_update.username is not None:
-        user.user_name = user_update.username.lower()
+        user.username = user_update.username.lower()
 
     if user_update.email is not None:
         user.email = user_update.email.lower()
